@@ -34,5 +34,9 @@ class Sqaure:
             area
         """
 
-        return self.__size * self.__size    
+        return self.__size **2
+
+    #Test cases
+    
+       
         
