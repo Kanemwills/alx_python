@@ -4,14 +4,24 @@
 - uses urlib package
 """
 
+import requests
 
-if __name__ == '__main__':
-    import urllib.request
+def main():
+    url = "https://alu-intranet.hbtn.io/status"
 
-    with urllib.request.urlopen('https://alx-intranet.hbtn.io/status') as res:
-        content = res.read()
+    try:
+        response = requests.get(url)
+        response_data = response.json()
+
         print("Body response:")
-        print("\t- type: {}".format(type(content)))
-        print("\t- content: {}".format(content))
-        print("\t- utf8 content: {}".format(content.decode('utf-8')))
-        
+        print(f"\t- type: {response_data['__class__']}")
+        print(f"\t- content: {response_data['content']}")
+        print(f"\t- utf8 content: {response_data['utf8content']}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
+
+
