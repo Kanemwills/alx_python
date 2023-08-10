@@ -1,3 +1,4 @@
-for i in range(99):
-    print("Decimal: {:2d}, Hexadecimal: {:02X}".format(i, i))
+#!/usr/bin/python3
+for i in range(0, 99):
+    print("{:d} = 0x{:x}".format(i, i))
     
