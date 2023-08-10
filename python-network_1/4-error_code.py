@@ -5,14 +5,24 @@
 - displays the body of the response (decoded in utf-8).
 """
 
+import requests
+import sys
 
-if __name__ == "__main__":
-    import sys
-    from urllib import request, error
+def main():
+    url = input("Enter the URL: ")
 
     try:
-        with request.urlopen(sys.argv[1]) as res:
-            print(res.read().decode('UTF-8'))
-    except error.HTTPError as er:
-        print('Error code:', er.code)
-        
+        response = requests.get(url)
+        response_body = response.text
+
+        print("Response body:")
+        print(response_body)
+
+        if response.status_code >= 400:
+            print(f"Error code: {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
