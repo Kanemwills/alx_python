@@ -1,6 +1,4 @@
+#!/usr/bin/python3
 def raise_exception():
-    x = "hello"
-    y = 42
+    raise TypeError("This is a type exception.")
 
-    result = x + y
-    
