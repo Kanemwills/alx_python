@@ -1,26 +1,27 @@
 #!/usr/bin/python3
-"""
-Script that lists all State objects from the database - Using module SQLAlchemy
-"""
+# 7-model_state_fetch_all.py
+"""import a model and fitch its results"""
 
-import sys
+from sys import argv
+from model_state import Base, State
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from model_state import State 
 
 if __name__ == "__main__":
 
-    # create an engine
-    engine = create_engine('mysql+mysqldb://{}:{}@localhost/{}'
-                           .format(sys.argv[1], sys.argv[2], sys.argv[3]), 
-                            pool_pre_ping=True)       
+    engine = create_engine(
+        'mysql+mysqldb://{}:{}@localhost/{}'.format
+        (argv[1],
+         argv[2],
+         argv[3]),
+        pool_pre_ping=True)
+
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    states = session.query(State).all()
+
+    for i in states:
+        print('{}: {}'.format(i.id, i.name))
         
-    #create a session factory
-    session = sessionmaker(bind=engine)
-
-    #create a session object
-    session = session()
-
-    #Retrieve all states from the database and print their IDs and names
-    for state in session.query(State). order_by(State.id):
-        print("{}: {}".format(state.id, state.name))
