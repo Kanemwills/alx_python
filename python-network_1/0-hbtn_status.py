@@ -7,7 +7,7 @@
 import requests
 
 def main():
-    url = "https://intranet.hbtn.io/status"
+    url = "https://alx-intranet.hbtn.io/status"
 
     try:
         response = requests.get(url)
