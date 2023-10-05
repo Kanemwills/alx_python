@@ -1,47 +1,81 @@
+
+"""
+    This module fetches employee information
+    and their to-do list from a REST API and saves it in a JSON file.
+"""
+import json
 import requests
 import sys
-import json
-"""
-Module Name: requests, json, sys
-Description: This module provides functions for network call, command line argument and writing json files
-"""
 
-if len(sys.argv) != 2:
-    sys.exit(1)
+# Define a function to fetch employee information
+def get_employee_info(employee_id):
+    """
+    Fetches employee information from the API.
 
-employee_id = int(sys.argv[1])
+    Args:
+        employee_id (int): The ID of the employee.
 
-employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-todos_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+    Returns:
+        dict: A dictionary containing employee information.
+    """
+    employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+    response = requests.get(employee_url)
+    data = response.json()
+    return data
 
-employee_response = requests.get(employee_url)
-todos_response = requests.get(todos_url)
+# Define a function to fetch the to-do list of an employee
+def get_todo_list(employee_id):
+    """
+    Fetches the to-do list of an employee from the API.
 
-if employee_response.status_code != 200 or todos_response.status_code != 200:
-    sys.exit(1)
+    Args:
+        employee_id (int): The ID of the employee.
 
-employee_data = employee_response.json()
-todo_data = todos_response.json()
-employee_name = employee_data.get("name", "unknown employee")
-employee_username = employee_data.get("username", "unknown employee")
+    Returns:
+        list: A list of to-do tasks for the employee.
+    """
+    todo_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+    response = requests.get(todo_url)
+    todo_data = response.json()
+    return todo_data
 
-json_filename = f"{employee_id}.json"
+# Define a function to process and save employee data to a JSON file
+def save_employee_data_to_json(employee_id):
+    """
+    Fetches employee information and to-do list, processes the data,
+    and saves it to a JSON file.
 
+    Args:
+        employee_id (int): The ID of the employee.
+    """
+    employee_info = get_employee_info(employee_id)
+    employee_name = employee_info['name']
 
-tasks_list = []
+    todo_list = get_todo_list(employee_id)
+    num_of_done_tasks = sum(1 for task in todo_list if task['completed'])
+    total_num_tasks = len(todo_list)
 
-for task in todo_data:
-    task_data = {
-        "task": task["title"],
-        "completed": task["completed"],
-        "username": employee_username
+    print(f"Employee {employee_name} is done with tasks ({num_of_done_tasks}/{total_num_tasks}):")
+
+    json_data = {
+        employee_id: [
+            {
+                "task": task["title"],
+                "completed": task["completed"],
+                "username": employee_name
+            }
+            for task in todo_list
+        ]
     }
-    tasks_list.append(task_data)
 
+    with open(f'{employee_id}.json', mode='w') as json_file:
+        json.dump(json_data, json_file, indent=4)
 
-user_data = {f"USER_ID {employee_id}": tasks_list}
+if __name__ == '__main__':
+    # Check if an employee ID is provided as a command-line argument
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <employee_id>")
+        sys.exit(1)
 
-
-with open(json_filename, mode="w") as json_file:
-    json.dump(user_data, json_file, indent=4)
-
+    employee_id = int(sys.argv[1])
+    save_employee_data_to_json(employee_id)
