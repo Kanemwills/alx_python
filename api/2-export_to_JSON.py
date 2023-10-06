@@ -1,47 +1,41 @@
-import requests
-import sys
 import json
-"""
-Module Name: requests, json, sys
-Description: This module provides functions for network call, command line argument and writing json files
-"""
+import requests
 
-if len(sys.argv) != 2:
-    sys.exit(1)
+# Function to fetch tasks for a given user ID
+def fetch_user_tasks(user_id):
+    todos_url = f"https://jsonplaceholder.typicode.com/users/{user_id}/todos"
+    todos_response = requests.get(todos_url)
+    if todos_response.status_code != 200:
+        return []  # Return an empty list if there was an error
+    return todos_response.json()
 
-employee_id = int(sys.argv[1])
+# Function to fetch all user IDs
+def fetch_user_ids():
+    users_url = "https://jsonplaceholder.typicode.com/users"
+    users_response = requests.get(users_url)
+    if users_response.status_code != 200:
+        return []  # Return an empty list if there was an error
+    return [user["id"] for user in users_response.json()]
 
-employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-todos_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+# Function to export data in JSON format for all tasks from all employees
+def export_todo_all_employees():
+    all_employee_data = {}
 
-employee_response = requests.get(employee_url)
-todos_response = requests.get(todos_url)
+    user_ids = fetch_user_ids()
+    for user_id in user_ids:
+        user_tasks = fetch_user_tasks(user_id)
+        employee_name = user_tasks[0]["username"] if user_tasks else "Unknown Employee"
+        
+        #a list of tasks for the current user
+        employee_tasks = [{"username": employee_name, "task": task["title"], "completed": task["completed"]} for task in user_tasks]
+        
+        
+        all_employee_data[user_id] = employee_tasks
 
-if employee_response.status_code != 200 or todos_response.status_code != 200:
-    sys.exit(1)
+    # Export data to JSON file
+    with open("todo_all_employees.json", "w") as json_file:
+        json.dump(all_employee_data, json_file, indent=4)
 
-employee_data = employee_response.json()
-todo_data = todos_response.json()
-employee_name = employee_data.get("name", "unknown employee")
-employee_username = employee_data.get("username", "unknown employee")
-
-json_filename = f"{employee_id}.json"
-
-
-tasks_list = []
-
-for task in todo_data:
-    task_data = {
-        "task": task["title"],
-        "completed": task["completed"],
-        "username": employee_username
-    }
-    tasks_list.append(task_data)
-
-
-user_data = {f"USER_ID {employee_id}": tasks_list}
-
-
-with open(json_filename, mode="w") as json_file:
-    json.dump(user_data, json_file, indent=4)
-
+if __name__ == "__main__":
+    export_todo_all_employees()
+    
