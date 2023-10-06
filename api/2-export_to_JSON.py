@@ -3,47 +3,34 @@ import json
 import sys
 
 def get_employee_data(employee_id):
-    # Define API endpoints
-    base_url = "https://jsonplaceholder.typicode.com"
-    employee_url = f"{base_url}/users/{employee_id}"
-    todos_url = f"{base_url}/users/{employee_id}/todos"
+    todos = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos")
 
-    # Fetch employee data
-    response = requests.get(employee_url)
-    employee_data = response.json()
-    user_id = employee_data.get("id")
-    username = employee_data.get("username")
+    if todos.status_code == 200:
+        todos_data = todos.json()
+        employee_tasks = []
 
-    # Fetch TODO list data
-    response = requests.get(todos_url)
-    todos_data = response.json()
+        for task in todos_data:
+            employee_tasks.append({
+                "task": task["title"],
+                "completed": task["completed"],
+                "username": task["userId"]  # Assuming the user ID is part of the task data
+            })
 
-    return user_id, username, todos_data
+        # Export data to JSON
+        json_filename = f"{employee_id}.json"
+        with open(json_filename, 'w') as jsonfile:
+            json.dump(employee_tasks, jsonfile, indent=4)
 
-def export_to_json(employee_id):
-    user_id, username, todos_data = get_employee_data(employee_id)
-
-    json_filename = f"{user_id}.json"
-
-    data_to_export = {str(user_id): [{"task": todo["title"], "completed": todo["completed"], "username": username} for todo in todos_data]}
-
-    with open(json_filename, mode='w') as json_file:
-        json.dump(data_to_export, json_file, indent=4)
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 2-export_to_JSON.py <employee_id>")
-        sys.exit(1)
-
-    employee_id = int(sys.argv[1])
-
-    try:
-        export_to_json(employee_id)
-        print(f"Data has been exported to {employee_id}.json")
-    except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+        print(f"Data exported to {json_filename} successfully.")
+    else:
+        print(f"Error: Unable to fetch tasks for employee ID {employee_id}")
 
 if __name__ == "__main__":
-    main()
-    
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <employee_id>")
+    else:
+        try:
+            employee_id = int(sys.argv[1])
+            get_employee_data(employee_id)
+        except ValueError:
+            print("Error: Invalid employee ID. Please provide a valid integer.")
