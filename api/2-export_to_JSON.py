@@ -1,36 +1,47 @@
 import requests
-import json
 import sys
+import json
+"""
+Module Name: requests, json, sys
+Description: This module provides functions for network call, command line argument and writing json files
+"""
 
-def get_employee_data(employee_id):
-    todos = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos")
+if len(sys.argv) != 2:
+    sys.exit(1)
 
-    if todos.status_code == 200:
-        todos_data = todos.json()
-        employee_tasks = []
+employee_id = int(sys.argv[1])
 
-        for task in todos_data:
-            employee_tasks.append({
-                "task": task["title"],
-                "completed": task["completed"],
-                "username": task["userId"]  # Assuming the user ID is part of the task data
-            })
+employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+todos_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
 
-        # Export data to JSON
-        json_filename = f"{employee_id}.json"
-        with open(json_filename, 'w') as jsonfile:
-            json.dump(employee_tasks, jsonfile, indent=4)
+employee_response = requests.get(employee_url)
+todos_response = requests.get(todos_url)
 
-        print(f"Data exported to {json_filename} successfully.")
-    else:
-        print(f"Error: Unable to fetch tasks for employee ID {employee_id}")
+if employee_response.status_code != 200 or todos_response.status_code != 200:
+    sys.exit(1)
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <employee_id>")
-    else:
-        try:
-            employee_id = int(sys.argv[1])
-            get_employee_data(employee_id)
-        except ValueError:
-            print("Error: Invalid employee ID. Please provide a valid integer.")
+employee_data = employee_response.json()
+todo_data = todos_response.json()
+employee_name = employee_data.get("name", "unknown employee")
+employee_username = employee_data.get("username", "unknown employee")
+
+json_filename = f"{employee_id}.json"
+
+
+tasks_list = []
+
+for task in todo_data:
+    task_data = {
+        "task": task["title"],
+        "completed": task["completed"],
+        "username": employee_username
+    }
+    tasks_list.append(task_data)
+
+
+user_data = {f"USER_ID {employee_id}": tasks_list}
+
+
+with open(json_filename, mode="w") as json_file:
+    json.dump(user_data, json_file, indent=4)
+
